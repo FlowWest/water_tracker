@@ -1,3 +1,4 @@
 .google-creds/*
 gha-creds-*.json
 data/*
+.Rproj.user
