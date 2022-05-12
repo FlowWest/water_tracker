@@ -1,8 +1,3 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
-*.RProj
-data/example
-data/other_covariates/tmax*
-data/other_covariates/valley_roads*
+.google-creds/*
+gha-creds-*.json
+data/*

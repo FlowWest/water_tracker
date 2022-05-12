@@ -1,0 +1,11 @@
+message("installing R package deps")
+
+install.packages("jsonlite")
+install.packages("dplyr")
+install.packages("readr")
+install.packages("tidyr")
+install.packages("sp")
+install.packages("raster")
+install.packages("rgdal")
+install.packages("gbm")
+install.packages("dismo")
