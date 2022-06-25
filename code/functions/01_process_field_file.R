@@ -12,7 +12,7 @@ library(sp)
 # Returns a vector of created files
 split_flooding_area <- function(field_shapefile, field_column_name, guide_raster, output_dir, 
                                 do_rasterize = TRUE, buffer_dist = NULL, overwrite = FALSE, 
-                                ncores = min(2, detectCores())) {
+                                ncores = detectCores()) {
 
   # Load required packages
   if (!require(sp)) stop(add_ts("Library sp is required"))
