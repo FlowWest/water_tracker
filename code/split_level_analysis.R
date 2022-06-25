@@ -159,6 +159,9 @@ stat_files <- extract_predictions(prd_files,
 stat_files <- list.files(imp_stat_dir, pattern = ".*summary.rds$", full.names = TRUE)
 message("the stat files: ", stat_files)
 
+stat_df <- do.call(rbind, lapply(stat_files, function(x) readRDS(x)))
+write.csv(stat_df, file.path(imp_stat_dir, "combined_stats.csv"), row.names = FALSE)
+
 # summary_files <- summarize_predictions(stat_files,
 #                                        metadata_csv_file = file.path(fld_dir, "bid_metadata.csv"),
 #                                        output_dir = imp_stat_dir)
