@@ -2,3 +2,5 @@
 gha-creds-*.json
 data/*
 .Rproj.user
+*.Rhistory
+*.Rproj
