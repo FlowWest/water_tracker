@@ -6,8 +6,6 @@ auction_id <- arguments[1]
 shape_file_name <- arguments[2]
 split_column <- arguments[3]
 
-base_dir <- suppressMessages(getwd())
-
 # source functions and definitions ---------------------
 suppressMessages(source("code/definitions.R"))
 suppressMessages(source("code/functions/00_shared_functions.R"))

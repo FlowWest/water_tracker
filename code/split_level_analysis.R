@@ -6,10 +6,6 @@ split_column <- arguments[2]
 water_input_months <- unlist(strsplit(arguments[3], ","))
 water_input_files <- unlist(strsplit(arguments[4], ","))
 
-shape_file_name <- "" 
-
-# base_dir <- suppressMessages(getwd())
-
 # Load definitions and code
 # def_file <- file.path(base_dir, "code/definitions.R")
 source("code/definitions.R")
