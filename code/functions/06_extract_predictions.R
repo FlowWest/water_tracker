@@ -2,10 +2,11 @@
 #
 library(parallel)
 library(MASS)
-numCores <- detectCores()
+
 # Returns character vector of created files
 extract_predictions <- function(prediction_files, floodarea_shapefiles, field_column, area_column,
-                                output_dir, n_predictions = NULL, overwrite = FALSE) {
+                                output_dir, n_predictions = NULL, overwrite = FALSE,
+                                ncores = detectCores()) {
   message_ts <- message # keep message shorter
   # Load required packages
   if (!require(rgdal)) stop(add_ts("Library rgdal is required"))
@@ -140,7 +141,9 @@ extract_predictions <- function(prediction_files, floodarea_shapefiles, field_co
 
   }
 
-  out <- lapply(floodarea_shapefiles, FUN=process_flood_area_shapes) 
+  #out <- lapply(floodarea_shapefiles, FUN=process_flood_area_shapes) 
+  out <- mclapply(floodarea_shapefiles, FUN=process_flood_area_shapes, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
+  
   res <- unlist(out)
     
   return(res)

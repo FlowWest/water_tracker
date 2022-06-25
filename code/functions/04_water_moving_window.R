@@ -6,8 +6,8 @@ library(MASS)
 # Takes water (by landcover) files and distances as input
 # Distance is in meters
 # Returns a vector of created files
-numCores <- detectCores()
-mean_neighborhood_water <- function(water_files, distances, output_dir, trim_extent = FALSE, overwrite = FALSE) {
+mean_neighborhood_water <- function(water_files, distances, output_dir, trim_extent = FALSE, overwrite = FALSE, 
+                                    ncores = detectCores()) {
   message_ts <- message # to keep messages short
   # Load required packages
   if (!require(rgdal)) stop(add_ts("Library rgdal is required"))
@@ -89,7 +89,7 @@ mean_neighborhood_water <- function(water_files, distances, output_dir, trim_ext
   }
 
   # out <- lapply(water_files, FUN=process_water_files)
-  out <- mclapply(water_files, FUN=process_water_files, mc.cores = 4, mc.silent = FALSE, mc.preschedule = TRUE)
+  out <- mclapply(water_files, FUN=process_water_files, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
 
   res <- unlist(out)
   return(res)

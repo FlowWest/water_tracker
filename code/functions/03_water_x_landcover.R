@@ -5,8 +5,8 @@ library(MASS)
 # Function to overlay water and landcover files
 # Takes water and landcover files as inputs
 # Returns a vector of created files
-numCores <- detectCores()
-overlay_water_landcover <- function(water_files, landcover_files, output_dir = NULL, overwrite = FALSE) {
+overlay_water_landcover <- function(water_files, landcover_files, output_dir = NULL, overwrite = FALSE, 
+                                    ncores = detectCores()) {
   message_ts <- message # to keep message short
   # Load required packages
   if (!require(rgdal)) stop(add_ts("Library rgdal is required"))
@@ -76,7 +76,7 @@ overlay_water_landcover <- function(water_files, landcover_files, output_dir = N
   }
 
   # out <- lapply(water_files, FUN=process_water_files)
-  out <- mclapply(water_files, FUN=process_water_files, mc.cores = 4, mc.silent = FALSE, mc.preschedule = TRUE)
+  out <- mclapply(water_files, FUN=process_water_files, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
   res <- unlist(out)
   return(res)
 

@@ -5,13 +5,13 @@ library(MASS)
 # If using a realtime-only or longterm-only model, pass the same set of layers to both water_files arguments
 #   The model object will only use the files from either the realtime or longterm
 # Returns character vector of processed files
-numCores <- detectCores()
 predict_bird_rasters <- function(water_files_realtime, water_files_longterm, scenarios, water_months,
                                  model_files, model_names,
                                  static_cov_files, static_cov_names,
                                  monthly_cov_files, monthly_cov_months, monthly_cov_names,
                                  output_dir, overwrite = FALSE,
-                                 on_missing_landcover = "stop") {
+                                 on_missing_landcover = "stop",
+                                 ncores = detectCores()) {
 
   message_ts <- message
   # Load required packages
@@ -278,7 +278,7 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
   }
 
   # out <- lapply(flood_areas, FUN=process_flood_areas) 
-  out <- mclapply(flood_areas, FUN=process_flood_areas, mc.cores = 4, mc.silent = FALSE, mc.preschedule = TRUE)
+  out <- mclapply(flood_areas, FUN=process_flood_areas, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
   
   res <- unlist(out)
 

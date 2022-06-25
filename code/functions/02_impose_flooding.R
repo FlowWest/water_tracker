@@ -5,8 +5,8 @@ library(MASS)
 # Define function to impose flooding
 # Takes water and field files as inputs
 # Returns a vector of created files
-numCores <- detectCores()
-impose_flooding <- function(water_files, field_files, output_dir, imposed_value = 1, mask = FALSE, overwrite = FALSE) {
+impose_flooding <- function(water_files, field_files, output_dir, imposed_value = 1, mask = FALSE, overwrite = FALSE, 
+                            ncores = detectCores()) {
   message_ts <- message #to keep message short
   # Load required packages
   if (!require(sp)) stop(add_ts("Library sp is required"))
@@ -87,7 +87,7 @@ impose_flooding <- function(water_files, field_files, output_dir, imposed_value 
 
 
   # out <- lapply(water_files, FUN=process_water_files)
-  out <- mclapply(water_files, FUN=process_water_files, mc.cores = 4, mc.silent = FALSE, mc.preschedule = TRUE)
+  out <- mclapply(water_files, FUN=process_water_files, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
   
   res <- unlist(out)
 

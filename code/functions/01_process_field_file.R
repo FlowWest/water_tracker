@@ -10,9 +10,9 @@ library(sp)
 # Shapefile must have a column containing the names you wish to group and split the analysis
 # Use of buffer_dist is recommended to speed processing; set as 2x your largest moving window
 # Returns a vector of created files
-numCores <- 2
-
-split_flooding_area <- function(field_shapefile, field_column_name, guide_raster, output_dir, do_rasterize = TRUE, buffer_dist = NULL, overwrite = FALSE) {
+split_flooding_area <- function(field_shapefile, field_column_name, guide_raster, output_dir, 
+                                do_rasterize = TRUE, buffer_dist = NULL, overwrite = FALSE, 
+                                ncores = min(2, detectCores())) {
 
   # Load required packages
   if (!require(sp)) stop(add_ts("Library sp is required"))
@@ -148,7 +148,7 @@ split_flooding_area <- function(field_shapefile, field_column_name, guide_raster
     }
   }
 
-  out <- mclapply(flooding_areas, FUN=process_flooding_areas, mc.cores = 4, mc.silent = FALSE, mc.preschedule = TRUE)
+  out <- mclapply(flooding_areas, FUN=process_flooding_areas, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
   # out <- lapply(flooding_areas, FUN=process_flooding_areas) 
   res <- unlist(out)
   
