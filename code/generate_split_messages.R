@@ -17,7 +17,7 @@ suppressMessages(source("code/functions/01_process_field_file.R"))
 # This section happens once and must complete before any subsequent steps run
 # Name of the shapefile
 
-floodarea_shapefile <- file.path(shape_file_dir) #YOUR_SHAPEFILE_NAME.shp"
+floodarea_shapefile <- file.path(shape_file_dir, shape_file_name) #YOUR_SHAPEFILE_NAME.shp"
 
 # Name of the column with names on which to group and split shapefile; should not contain special characters
 # This would be the column of field name for a field-level split analysis and the column of the bid for a bid-level one
