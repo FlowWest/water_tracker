@@ -5,9 +5,8 @@
 # Set directories ---------------------------------------------
 base_dir <- getwd() #replace as necessary with "YOUR/BASE/DIR"
 code_dir <- file.path(base_dir, "code")
-data_dir <- file.path(base_dir, "data",auction_id)
-axn_dir <- file.path(base_dir,
-"data",auction_id,"auction")
+data_dir <- file.path(base_dir, "data", auction_id) #confusing way to have this specified; probably should create set_directories function with auction_id as param
+axn_dir <- file.path(data_dir, "auction")
 lc_dir <- file.path(data_dir, "landcover")
 run_dir <- file.path(data_dir, "runoff")
 pcp_dir <- file.path(data_dir, "precip")
@@ -18,7 +17,7 @@ cov_dir <- file.path(data_dir, "other_covariates")
 
 mdl_dir <- file.path(data_dir, "models")
 brd_mdl_dir <- file.path(mdl_dir, "birds")
-shape_file_dir <- file.path(axn_dir, 'fields',shape_file_name)
+shape_file_dir <- file.path(axn_dir, "fields")
 fld_dir <- file.path(axn_dir, "fields", "splits")
 
 # Average flooding (auction-level)
