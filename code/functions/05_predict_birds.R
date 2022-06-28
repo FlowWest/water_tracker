@@ -13,7 +13,7 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
                                  on_missing_landcover = "stop",
                                  ncores = detectCores()) {
 
-  message_ts <- message
+  
   # Load required packages
   if (!require(rgdal)) stop(add_ts("Library rgdal is required"))
   if (!require(raster)) stop(add_ts("Library raster is required"))
@@ -26,10 +26,18 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
   if (!(all(water_months %in% month.abb))) stop(add_ts("Argument 'water_months' must consist of valid 3-letter month abbreviations"))
 
   # Check input files
-  if (!all(file.exists(water_files_realtime))) stop(add_ts("The following water_files do not exist:\n",
-                                                  paste0(water_files_realtime[!file.exists(water_files_realtime)], collapse = ", ")))
-  if (!all(file.exists(water_files_longterm))) stop(add_ts("The following water_files do not exist:\n",
-                                                  paste0(water_files_longterm[!file.exists(water_files_longerm)], collapse = ", ")))
+  realtime_files <- FALSE
+  if (!is.null(water_files_realtime)) {
+    realtime_files <- TRUE
+    if (!all(file.exists(water_files_realtime))) stop(add_ts("The following water_files do not exist:\n",
+                                                             paste0(water_files_realtime[!file.exists(water_files_realtime)], collapse = ", ")))  
+  }
+  longterm_files <- FALSE
+  if (!is.null(water_files_longterm)) {
+    if (!all(file.exists(water_files_longterm))) stop(add_ts("The following water_files do not exist:\n",
+                                                             paste0(water_files_longterm[!file.exists(water_files_longerm)], collapse = ", ")))
+    longterm_files <- TRUE
+  }
   if (!all(file.exists(model_files))) stop(add_ts("The following model_files do not exist:\n",
                                                       paste0(model_files[!file.exists(model_files)], collapse = ", ")))
   if (!all(file.exists(static_cov_files))) stop(add_ts("The following static_cov_files do not exist:\n",
@@ -86,13 +94,25 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
   processed_files <- c()
 
   # Get unique flooding areas
-  flood_areas <- unique(extract_subelement(strsplit(basename(water_files_realtime), "_"), 1))
+  if (!is.null(water_files_realtime)) {
+    flood_areas <- unique(extract_subelement(strsplit(basename(water_files_realtime), "_"), 1))
+    loop_files <- water_files_realtime
+    loop_rt <- TRUE
+  } else {
+    flood_areas <- unique(extract_subelement(strsplit(basename(water_files_longterm), "_"), 1))
+    loop_files <- water_files_longterm
+    loop_rt <- FALSE
+  }
+  
   process_flood_areas <- function(fa) {
 
     message_ts("Working on flooding area ", fa)
     fac <- clean_string(fa)
+    
     # Files for this flooding area
-    fa_files <- water_files_realtime[grepl(fa, water_files_realtime)]
+    # trailing underscore required to prevent field-1 from matching field-14
+    fa_files <- loop_files[grepl(paste0(fa, "_"), loop_files)]
+    #print(fa_files)
 
     # Loop across unique scenarios
     for (scn in scenarios) {
@@ -101,6 +121,7 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
       scn_files <- fa_files[grepl(scn, fa_files)]
       if (length(scn_files) == 0) {
         message_ts("WARNING: no files found matching scneario ", scn, " for flood area ", fa, ". Moving to next...")
+        #print(fa_files)
         next
       }
 
@@ -122,80 +143,92 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
           next
 
         }
-
-        # LONGTERM WATER (average)
-        message_ts("Checking and loading long-term water x landcover moving window files...")
-
-        # Check files
-        landcover_lt_df$File <- mapply(nm = landcover_lt_df$NameLandcover, dst = landcover_lt_df$Distance,
-                                       FUN = function(nm, dst) {
-                                        y <- water_files_longterm[grep(paste0(mth, ".*", nm, "_.*", dst), water_files_longterm)]
-                                        if (length(y) > 1) {
-                                          stop(add_ts("Multiple matches found for long-term water files"))
-                                        } else if (length(y) == 0) {
-                                          y <- 0
-                                        }
-                                        y
-                                       })
-
-        if (any(is.na(landcover_lt_df$File))) {
-
-          if (on_missing_landcover == "stop") {
-            stop(add_ts("The following longterm water x landcover moving window combinations are missing from water_files_realtime for flood area ", fa,
-                        ", scenario ", scn, ", and month ", mth, ":\n\t",
-                        paste0(landcover_lt_df$LandcoverDistance[is.na(landcover_lt_df$File)], collapse = "\n\t"),
-                        "\n\nHalting execultion."))
-          } else {
-            message_ts("The following longterm water x landcover moving window combinations are missing from water_files_realtime for flood area ", fa,
-                       ", scenario ", scn, ", and month ", mth, ":\n\t",
-                       paste0(landcover_lt_df$LandcoverDistance[is.na(landcover_lt_df$File)], collapse = "\n\t"),
-                       "\n\nMoving to next...")
-            next
-          }
-
-        }
-
-        # Load required imposed water files and match names
-        wtr_lt_stk <- stack(landcover_lt_df$File)
-        names(wtr_lt_stk) <- landcover_lt_df$NameModel
-
+        
         # REALTIME WATER (imposed)
-        message_ts("Checking and loading imposed water x landcover moving window files...")
-
-        # Check files
-        landcover_rt_df$File <- mapply(nm = landcover_rt_df$NameLandcover, dst = landcover_rt_df$Distance,
-                                       FUN = function(nm, dst) {
-                                        y <- mth_files[grep(paste0(nm, "_.*", dst), mth_files)]
-                                        if (length(y) > 1) {
-                                          stop(add_ts("Multiple matches found for real-time (imposed) water files"))
-                                        } else if (length(y) == 0) {
-                                          y <- 0
-                                        }
-                                        y
-                                       })
-
-        if (any(is.na(landcover_rt_df$File))) {
-
-          if (on_missing_landcover == "stop") {
-            stop(add_ts("The following imposed water x landcover moving window combinations are missing from water_files_realtime for flood area ", fa,
-                        ", scenario ", scn, ", and month ", mth, ":\n\t",
-                        paste0(landcover_rt_df$LandcoverDistance[is.na(landcover_rt_df$File)], collapse = "\n\t"),
-                        "\n\nHalting execultion."))
-          } else {
-            message_ts("The following imposed water x landcover moving window combinations are missing from water_files_realtime for flood area ", fa,
-                        ", scenario ", scn, ", and month ", mth, ":\n\t",
-                        paste0(landcover_rt_df$LandcoverDistance[is.na(landcover_rt_df$File)], collapse = "\n\t"),
-                       "\n\nMoving to next...")
-            next
+        wtr_rt_stk <- stack()
+        if (realtime_files) {
+          
+          message_ts("Checking and loading realtime water x landcover moving window files...")
+          
+          # Check files
+          landcover_rt_df$File <- mapply(nm = landcover_rt_df$NameLandcover, dst = landcover_rt_df$Distance,
+                                         FUN = function(nm, dst) {
+                                           y <- water_files_realtime[grep(paste0(mth, ".*", nm, "_.*", dst), water_files_realtime)]
+                                           if (length(y) > 1) {
+                                             message_ts("Name ", nm, "; Distance ", dst, "; Matches:\n", 
+                                                        paste0(y, collapse = ", "))
+                                             stop(add_ts("Multiple matches found for real-time (imposed) water files"))
+                                           } else if (length(y) == 0) {
+                                             y <- 0
+                                           }
+                                           y
+                                         })
+          
+          if (any(is.na(landcover_rt_df$File))) {
+            
+            if (on_missing_landcover == "stop") {
+              stop(add_ts("The following imposed water x landcover moving window combinations are missing from water_files_realtime for flood area ", fa,
+                          ", scenario ", scn, ", and month ", mth, ":\n\t",
+                          paste0(landcover_rt_df$LandcoverDistance[is.na(landcover_rt_df$File)], collapse = "\n\t"),
+                          "\n\nHalting execultion."))
+            } else {
+              message_ts("The following imposed water x landcover moving window combinations are missing from water_files_realtime for flood area ", fa,
+                         ", scenario ", scn, ", and month ", mth, ":\n\t",
+                         paste0(landcover_rt_df$LandcoverDistance[is.na(landcover_rt_df$File)], collapse = "\n\t"),
+                         "\n\nMoving to next...")
+              next
+            }
+            
           }
-
+          
+          # Load required imposed water files and match names
+          message_ts("Loading imposed water x landcover moving window files...")
+          wtr_rt_stk <- stack(landcover_rt_df$File)
+          names(wtr_rt_stk) <- landcover_rt_df$NameModel
+          
         }
-
-        # Load required imposed water files and match names
-        message_ts("Loading imposed water x landcover moving window files...")
-        wtr_rt_stk <- stack(landcover_rt_df$File)
-        names(wtr_rt_stk) <- landcover_rt_df$NameModel
-
+        
+        # LONGTERM WATER (average)
+        wtr_lt_stk <- stack()
+        if (longterm_files) {
+          
+          message_ts("Checking and loading long-term water x landcover moving window files...")
+          
+          # Check files
+          landcover_lt_df$File <- mapply(nm = landcover_lt_df$NameLandcover, dst = landcover_lt_df$Distance,
+                                         FUN = function(nm, dst) {
+                                           y <- water_files_longterm[grep(paste0(mth, ".*", nm, "_.*", dst), water_files_longterm)]
+                                           if (length(y) > 1) {
+                                             stop(add_ts("Multiple matches found for long-term water files"))
+                                           } else if (length(y) == 0) {
+                                             y <- 0
+                                           }
+                                           y
+                                         })
+          
+          if (any(is.na(landcover_lt_df$File))) {
+            
+            if (on_missing_landcover == "stop") {
+              stop(add_ts("The following longterm water x landcover moving window combinations are missing from water_files_realtime for flood area ", fa,
+                          ", scenario ", scn, ", and month ", mth, ":\n\t",
+                          paste0(landcover_lt_df$LandcoverDistance[is.na(landcover_lt_df$File)], collapse = "\n\t"),
+                          "\n\nHalting execultion."))
+            } else {
+              message_ts("The following longterm water x landcover moving window combinations are missing from water_files_realtime for flood area ", fa,
+                         ", scenario ", scn, ", and month ", mth, ":\n\t",
+                         paste0(landcover_lt_df$LandcoverDistance[is.na(landcover_lt_df$File)], collapse = "\n\t"),
+                         "\n\nMoving to next...")
+              next
+            }
+            
+          }
+          
+          # Load required imposed water files and match names
+          wtr_lt_stk <- stack(landcover_lt_df$File)
+          names(wtr_lt_stk) <- landcover_lt_df$NameModel
+          
+        }
+        
         # Load basic covariates
         message_ts("Loading model covariates...")
         static_cov_stk <- stack(static_cov_files)
@@ -276,9 +309,32 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
     return(processed_files)
 
   }
-
-  # out <- lapply(flood_areas, FUN=process_flood_areas) 
-  out <- mclapply(flood_areas, FUN=process_flood_areas, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
+  
+  if (ncores == 1) {
+    
+    out <- lapply(flood_areas, FUN=process_flood_areas) 
+      
+  } else {
+    
+    # Process in parallel
+    # Windows requires a special call because it doesn't do mclapply
+    if(Sys.info()[["sysname"]] == "Windows"){
+      
+      cl <- setup_cluster(min(ncores, length(flood_areas)))
+      
+      tryCatch({
+        out <- parLapply(cl, flood_areas, process_flood_areas)
+      }, finally = {
+        stopCluster(cl)
+      })
+      
+    } else {
+      
+      out <- mclapply(flood_areas, FUN = process_flood_areas, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
+      
+    }
+    
+  }
   
   res <- unlist(out)
 

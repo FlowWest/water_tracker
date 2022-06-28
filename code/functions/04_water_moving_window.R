@@ -8,7 +8,7 @@ library(MASS)
 # Returns a vector of created files
 mean_neighborhood_water <- function(water_files, distances, output_dir, trim_extent = FALSE, overwrite = FALSE, 
                                     ncores = detectCores()) {
-  message_ts <- message # to keep messages short
+  #message_ts <- message # to keep messages short
   # Load required packages
   if (!require(rgdal)) stop(add_ts("Library rgdal is required"))
   if (!require(raster)) stop(add_ts("Library raster is required"))
@@ -88,9 +88,24 @@ mean_neighborhood_water <- function(water_files, distances, output_dir, trim_ext
 
   }
 
-  # out <- lapply(water_files, FUN=process_water_files)
-  out <- mclapply(water_files, FUN=process_water_files, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
-
+  # Process in parallel
+  # Windows requires a special call because it doesn't do mclapply
+  if(Sys.info()[["sysname"]] == "Windows"){
+    
+    cl <- setup_cluster(min(ncores, length(water_files)))
+    
+    tryCatch({
+      out <- parLapply(cl, water_files, process_water_files)
+    }, finally = {
+      stopCluster(cl)
+    })
+    
+  } else {
+    
+    out <- mclapply(water_files, FUN = process_water_files, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
+  
+  }
+  
   res <- unlist(out)
   return(res)
 

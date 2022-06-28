@@ -5,9 +5,11 @@ library(MASS)
 # Define function to impose flooding
 # Takes water and field files as inputs
 # Returns a vector of created files
-impose_flooding <- function(water_files, field_files, output_dir, imposed_value = 1, mask = FALSE, overwrite = FALSE, 
+impose_flooding <- function(water_files, field_files, output_dir, 
+                            imposed_value = 1, imposed_label = "imposed",
+                            mask = FALSE, overwrite = FALSE, 
                             ncores = detectCores()) {
-  message_ts <- message #to keep message short
+  #message_ts <- message #to keep message short
   # Load required packages
   if (!require(sp)) stop(add_ts("Library sp is required"))
   if (!require(rgdal)) stop(add_ts("Library rgdal is required"))
@@ -25,7 +27,8 @@ impose_flooding <- function(water_files, field_files, output_dir, imposed_value 
   # Check other parameters
   if (!is.logical(mask)) stop(add_ts("Argument 'mask' must be TRUE or FALSE"))
   if (!is.logical(overwrite)) stop(add_ts("Argument 'overwrite' must be TRUE or FALSE"))
-  if (!is.numeric(imposed_value)) stop(add_ts("Argument 'imposed_value' must be numeric"))
+  if (!is.null(imposed_value) & !is.numeric(imposed_value)) stop(add_ts("Argument 'imposed_value' must be null or numeric"))
+  if (!is.character(imposed_label)) stop(add_ts("Argument 'imposed_label' must be a character string of length 1"))
 
   # Initialize output
 
@@ -46,10 +49,15 @@ impose_flooding <- function(water_files, field_files, output_dir, imposed_value 
 
       # Build export filename and check if has been processed
       out_fn_base <- paste(extract_subelement(strsplit(ffn, "\\."), 1), extract_subelement(strsplit(wfn, "\\."), 1), sep = "_")
-      out_file <- file.path(output_dir, paste0(out_fn_base, "_imposed.tif"))
+      out_file <- file.path(output_dir, paste0(out_fn_base, "_", imposed_label, ".tif"))
       if (file.exists(out_file) & overwrite != TRUE) {
+        
+        # Append to output
+        processed_files <- c(processed_files, out_file)
+        
         message_ts("Flooding already imposed. Moving to next...")
         next
+        
       }
 
       # Load flooding area raster
@@ -64,18 +72,35 @@ impose_flooding <- function(water_files, field_files, output_dir, imposed_value 
 
       }
 
-      # Find extent of field
-      is_field <- !is.na(values(fld_rst)) & values(fld_rst) == 1
-
-      # Impose flooding
-      message_ts("Imposing constant flood value...")
-      imp_rst <- wtr_msk_rst
-      values(imp_rst)[is_field] <- imposed_value
-
-      message_ts("Output file: ", out_file)
+      # If imposed_value is numeric, impose value 
+      if (is.numeric(imposed_value)) {
+        
+        message_ts("Imposing constant flood value...")
+        
+        # Find extent of field
+        is_field <- !is.na(values(fld_rst)) & values(fld_rst) == 1
+        
+        # Impose value
+        imp_rst <- wtr_msk_rst
+        values(imp_rst)[is_field] <- imposed_value
+        
+      } else if(is.null(imposed_value)) {
+        
+        message_ts("Imposing no value...")
+        imp_rst <- wtr_msk_rst
+        
+      } else {
+        
+        message_ts("Unrecognized value for 'imposed_value'")
+        next
+        
+      }
+      
+      # Export
+      message_ts("Writing to: ", out_file)
       writeRaster(imp_rst, filename = out_file, overwrite = TRUE)
       message_ts("Complete.")
-
+      
       # Append to output
       processed_files <- c(processed_files, out_file)
 
@@ -84,10 +109,24 @@ impose_flooding <- function(water_files, field_files, output_dir, imposed_value 
     return(processed_files)
 
   }
-
-
-  # out <- lapply(water_files, FUN=process_water_files)
-  out <- mclapply(water_files, FUN=process_water_files, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
+  
+  # Process in parallel
+  # Windows requires a special call because it doesn't do mclapply
+  if(Sys.info()[["sysname"]] == "Windows"){
+    
+    cl <- setup_cluster(min(ncores, length(water_files)))
+    
+    tryCatch({
+      out <- parLapply(cl, water_files, process_water_files)
+    }, finally = {
+      stopCluster(cl)
+    })
+    
+  } else {
+    
+    out <- mclapply(water_files, FUN = process_water_files, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
+    
+  }
   
   res <- unlist(out)
 

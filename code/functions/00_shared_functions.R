@@ -4,11 +4,11 @@
 
 # Shared Functions --------------------
 
-# Basic logging function to add a timestamp to strings
-add_ts <- function(...) print(paste0("[", Sys.time(), "] - ", ...))
+# Basic logging function to add a timestamp and process id to strings
+add_ts <- function(...) paste0("{", Sys.getpid(), "} [", Sys.time(), "] - ", ...)
 
 # Add as wrapper for base 'message' function
-message_ts <- function(...) print(message(add_ts(...)))
+message_ts <- function(...) message(add_ts(...))
 
 # Function to check directories exist, optionally loading
 check_dir <- function(directory, create = FALSE, verbose = FALSE) {
@@ -138,5 +138,31 @@ parse_filename <- function(files) {
   
 }
 
+# Function to setup cluster for parallel processing (on windows; linux can use easier mclapply)
+setup_cluster <- function(ncores = detectCores(), verbose = FALSE, outfile = "") {
+  
+  ncores <- min(ncores, detectCores())
+  cl <- makeCluster(ncores, outfile = outfile)
+  
+  # Get loaded packages
+  pkgs <- names(sessionInfo()$otherPkgs)
+  
+  # Export available variables in current env, parent env(s), and global env
+  this_env <- environment()
+  while(!identical(this_env, .GlobalEnv)) {
+    clusterExport(cl, ls(this_env), this_env)
+    this_env <- parent.env(environment())
+  }
+  clusterExport(cl, ls(.GlobalEnv), .GlobalEnv)
+  
+  # Load packages
+  clusterEvalQ(cl, lapply(pkgs, FUN = library, character.only = TRUE, quietly = TRUE))
 
-
+  if (verbose == TRUE) {
+    print(clusterEvalQ(cl, ls()))
+    print(clusterEvalQ(cl, names(sessionInfo()$OtherPkgs))) #maybe doesn't work?
+  }
+  
+  return(cl)
+  
+}

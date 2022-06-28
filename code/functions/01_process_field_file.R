@@ -4,8 +4,6 @@ library(rgdal)
 library(raster)
 library(sp)
 
-# this script took 20 minutes to run on my computer
-
 # Define function to split and buffer flooding areas
 # Shapefile must have a column containing the names you wish to group and split the analysis
 # Use of buffer_dist is recommended to speed processing; set as 2x your largest moving window
@@ -76,7 +74,7 @@ split_flooding_area <- function(field_shapefile, field_column_name, guide_raster
   # Reproject shapefile if needed
   if (projection(field_shp) != projection(guide_rst)) {
 
-    message("Reprojecting shapefile to match guide_rst...")
+    message_ts("Reprojecting shapefile to match guide_rst...")
     field_shp <- spTransform(field_shp, crs(guide_rst))
 
   }
@@ -94,17 +92,17 @@ split_flooding_area <- function(field_shapefile, field_column_name, guide_raster
 
     if (file.exists(fa_file) & overwrite == FALSE) {
 
-      message("Split shapefile for flooding area ", fa, " already created and overwrite == FALSE. Moving to next...")
+      message_ts("Split shapefile for flooding area ", fa, " already created and overwrite == FALSE. Moving to next...")
       return(-1)
       # append to a vector that file has been processed
 
     } else {
 
-      message("Subsetting area ", fa, "...")
+      message_ts("Subsetting area ", fa, "...")
       fa_shp <- field_shp[field_shp[[field_column_name]] == fa,]
 
       suppressMessages(writeOGR(fa_shp, output_dir, clean_name, driver = "ESRI Shapefile", overwrite_layer=TRUE))
-      message("Complete.")
+      message_ts("Complete.")
 
       # append to a vector that file has been processed    
 
@@ -116,40 +114,55 @@ split_flooding_area <- function(field_shapefile, field_column_name, guide_raster
 
       if (file.exists(fa_rst_file) & overwrite == FALSE) {
 
-        message("Flooding area ", fa, " already rasterized and overwrite == FALSE. Moving to next...")
+        message_ts("Flooding area ", fa, " already rasterized and overwrite == FALSE. Moving to next...")
         return(0) # 0 for file already exists 
 
       }
 
       if (is.null(buffer_dist)) {
 
-        message("Rasterizing...")
+        message_ts("Rasterizing...")
         fa_rst <- raster::rasterize(fa_shp, guide_rst, field = 1, filename = fa_file, overwrite = TRUE)
         
       } else {
 
         fa_rst <- raster::rasterize(fa_shp, guide_rst, field = 1) #keep in memory, as overwriting in subsequent call causes error
 
-        message("Rasterizing...")
+        message_ts("Rasterizing...")
 
         # Turn values within buffer distance of field to 2s instead of NAs
         # Used for masking later to speed processing
         # Width is in meters
-        message("Calculating ", buffer_dist, "m buffer for", fa, "...")
+        message_ts("Calculating ", buffer_dist, "m buffer for", fa, "...")
         fa_buf_rst <- buffer(fa_rst, width = buffer_dist)
-        message("Adding buffer to flooding area raster...")
+        message_ts("Adding buffer to flooding area raster...")
         fa_out_rst <- overlay(x = fa_rst, y = fa_buf_rst, fun = function(x, y) { ifelse(is.na(x) & y == 1, 2, x) },
                               filename = fa_rst_file, overwrite = TRUE)
       }
 
-      message("split_id=", basename(fa_rst_file))
+      message_ts("split_id=", basename(fa_rst_file))
       gc(full=TRUE)
       return(1) # 1 for file was created
     }
   }
 
-  out <- mclapply(flooding_areas, FUN=process_flooding_areas, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
-  # out <- lapply(flooding_areas, FUN=process_flooding_areas) 
+  # Process in parallel
+  # Windows requires a special call because it doesn't do mclapply
+  if(Sys.info()[["sysname"]] == "Windows"){
+    
+    cl <- setup_cluster(min(ncores, length(flooding_areas)))
+    
+    tryCatch({
+      out <- parLapply(cl, flooding_areas, process_flooding_areas)
+    }, finally = {
+      stopCluster(cl)
+    })
+    
+  } else {
+    
+    out <- mclapply(flooding_areas, FUN = process_flooding_areas, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
+  
+  }
   res <- unlist(out)
   
   return(res)
