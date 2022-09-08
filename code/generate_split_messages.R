@@ -7,9 +7,10 @@ shape_file_name <- arguments[2]
 split_column <- arguments[3]
 
 # source functions and definitions ---------------------
-suppressMessages(source("code/definitions.R"))
-suppressMessages(source("code/functions/00_shared_functions.R"))
-suppressMessages(source("code/functions/01_process_field_file.R"))
+code_dir <- getwd()
+suppressMessages(source(file.path(code_dir, "definitions.R")))
+suppressMessages(source(file.path(code_dir, "functions/00_shared_functions.R")))
+suppressMessages(source(file.path(code_dir, "functions/01_process_field_file.R")))
 
 # Split field file ------------------------------------------
 # This section happens once and must complete before any subsequent steps run
