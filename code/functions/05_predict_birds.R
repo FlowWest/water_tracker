@@ -248,21 +248,34 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
         if (identical(extent(static_cov_stk), extent(mth_cov_stk))) {
           message_ts("As stack...")
           cov_stk <- stack(static_cov_stk, mth_cov_stk)
-          cov_stk <- crop(cov_stk, wtr_rt_stk)
+          if (realtime_files) {
+            cov_stk <- crop(cov_stk, wtr_rt_stk)
+          }
+          if (longterm_files) {
+            cov_stk <- crop(cov_stk, wtr_lt_stk)
+          }
         } else {
           message_ts("Individually...")
-          static_cov_stk <- crop(static_cov_stk, wtr_rt_stk)
-          mth_cov_stk <- crop(mth_cov_stk, wtr_rt_stk)
+          if (realtime_files) {
+            static_cov_stk <- crop(static_cov_stk, wtr_rt_stk)
+            mth_cov_stk <- crop(mth_cov_stk, wtr_rt_stk) 
+          }
+          if (longterm_files) {
+            static_cov_stk <- crop(static_cov_stk, wtr_lt_stk)
+            mth_cov_stk <- crop(mth_cov_stk, wtr_lt_stk) 
+          }
           cov_stk <- stack(static_cov_stk, mth_cov_stk)
         }
-        wtr_lt_stk <- crop(wtr_lt_stk, wtr_rt_stk)
+        if (realtime_files) {
+          wtr_lt_stk <- crop(wtr_lt_stk, wtr_rt_stk)
+        }
 
         # Check extents and combine
-        if (!identical(extent(wtr_lt_stk), extent(wtr_rt_stk))) {
-          message_ts("Real-time water layers:\n", paste(landcover_rt_df$File, collapse = "\n"))
-          message_ts("Long-term water layers:\n", paste(landcover_lt_df$File, collapse = "\n"))
-          stop(add_ts("Real-time and long-term water layers have different extents. Check specified files."))
-        }
+        #if (!identical(extent(wtr_lt_stk), extent(wtr_rt_stk))) {
+        #  message_ts("Real-time water layers:\n", paste(landcover_rt_df$File, collapse = "\n"))
+        #  message_ts("Long-term water layers:\n", paste(landcover_lt_df$File, collapse = "\n"))
+        #  stop(add_ts("Real-time and long-term water layers have different extents. Check specified files."))
+        #}
 
         cov_stk <- stack(cov_stk, wtr_lt_stk, wtr_rt_stk)
 
@@ -292,8 +305,9 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
           message_ts("Output file: ", prd_file)
 
           # Must define factors when predicting
-          prd_rst <- raster::predict(cov_stk, mdl, n.trees = mdl$gbm.call$best.trees, type = "response", factors = list("COUNT_TYPE2" = c(1, 2)),
-                filename = prd_file, overwrite = TRUE)
+          prd_rst <- raster::predict(cov_stk, mdl, n.trees = mdl$gbm.call$best.trees, 
+                                     type = "response", factors = list("COUNT_TYPE2" = c(1, 2)),
+                                     filename = prd_file, overwrite = TRUE)
           print(summary(prd_rst))
           message_ts("Complete.")
 
@@ -312,7 +326,7 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
   
   if (ncores == 1) {
     
-    out <- lapply(flood_areas, FUN=process_flood_areas) 
+    out <- lapply(flood_areas, FUN = process_flood_areas) 
       
   } else {
     
