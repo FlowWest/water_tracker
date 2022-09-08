@@ -7,7 +7,7 @@ library(MASS)
 extract_predictions <- function(prediction_files, floodarea_shapefiles, field_column, area_column,
                                 output_dir, n_predictions = NULL, overwrite = FALSE,
                                 ncores = detectCores()) {
-  message_ts <- message # keep message shorter
+  
   # Load required packages
   if (!require(rgdal)) stop(add_ts("Library rgdal is required"))
   if (!require(raster)) stop(add_ts("Library raster is required"))
@@ -41,7 +41,8 @@ extract_predictions <- function(prediction_files, floodarea_shapefiles, field_co
     if (!(area_column) %in% names(fa_shp@data)) stop(add_ts("area_column ", area_column, " does not exist in fa_shp ", fa, "."))
 
     # Subset to matching flood areas
-    prd_files <- prediction_files[grepl(fa, prediction_files)]
+    # Need terminal underscore in search pattern to distinguish 'Field-1' from 'Field-14'
+    prd_files <- prediction_files[grepl(paste0(fa, "_"), prediction_files)]
     n_files <- length(prd_files)
     message_ts(length(prd_files), " matching predictions found.")
     if (n_files == 0) {
@@ -89,6 +90,7 @@ extract_predictions <- function(prediction_files, floodarea_shapefiles, field_co
       if (file.exists(prd_data_file)) {
 
         message_ts("Data for flooding area ", fa, " and field ", fld, " already calculated. Moving to next...")
+        processed_files <- c(processed_files, prd_data_file)
         next
 
       }
@@ -138,12 +140,40 @@ extract_predictions <- function(prediction_files, floodarea_shapefiles, field_co
       processed_files <- c(processed_files, prd_data_file)
 
     }
+    
+    return(processed_files)
 
   }
-
-  #out <- lapply(floodarea_shapefiles, FUN=process_flood_area_shapes) 
-  out <- mclapply(floodarea_shapefiles, FUN=process_flood_area_shapes, mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
   
+  # Process serially
+  if (ncores == 1) {
+    
+    out <- lapply(floodarea_shapefiles, FUN = process_flood_area_shapes) 
+  
+  # Process in parallel
+  } else {
+    
+    # Windows requires a special call because it doesn't do mclapply
+    if(Sys.info()[["sysname"]] == "Windows"){
+      
+      cl <- setup_cluster(min(ncores, length(floodarea_shapefiles)))
+      
+      tryCatch({
+        out <- parLapply(cl, floodarea_shapefiles, process_flood_area_shapes)
+      }, finally = {
+        stopCluster(cl)
+      })
+      
+    } else {
+      
+      
+    out <- mclapply(floodarea_shapefiles, FUN = process_flood_area_shapes, 
+                    mc.cores = ncores, mc.silent = FALSE, mc.preschedule = TRUE)
+    
+    }
+    
+  }
+    
   res <- unlist(out)
     
   return(res)
