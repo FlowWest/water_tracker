@@ -153,11 +153,11 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
           # Check files
           landcover_rt_df$File <- mapply(nm = landcover_rt_df$NameLandcover, dst = landcover_rt_df$Distance,
                                          FUN = function(nm, dst) {
-                                           y <- water_files_realtime[grep(paste0(mth, ".*", nm, "_.*", dst), water_files_realtime)]
+                                           y <- water_files_realtime[grep(paste0(fa, ".*_", mth, "_.*", nm, "_.*", dst), water_files_realtime)]
                                            if (length(y) > 1) {
-                                             message_ts("Name ", nm, "; Distance ", dst, "; Matches:\n", 
+                                             msg <- paste0("Name ", nm, "; Distance ", dst, "; Matches:\n", 
                                                         paste0(y, collapse = ", "))
-                                             stop(add_ts("Multiple matches found for real-time (imposed) water files"))
+                                             stop(add_ts("Multiple matches found for real-time (imposed) water files.\n", msg))
                                            } else if (length(y) == 0) {
                                              y <- 0
                                            }
@@ -197,7 +197,7 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
           # Check files
           landcover_lt_df$File <- mapply(nm = landcover_lt_df$NameLandcover, dst = landcover_lt_df$Distance,
                                          FUN = function(nm, dst) {
-                                           y <- water_files_longterm[grep(paste0(mth, ".*", nm, "_.*", dst), water_files_longterm)]
+                                           y <- water_files_longterm[grep(paste0(".*_", mth, "_.*", nm, "_.*", dst), water_files_longterm)]
                                            if (length(y) > 1) {
                                              stop(add_ts("Multiple matches found for long-term water files"))
                                            } else if (length(y) == 0) {
