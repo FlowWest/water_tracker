@@ -153,7 +153,7 @@ predict_bird_rasters <- function(water_files_realtime, water_files_longterm, sce
           # Check files
           landcover_rt_df$File <- mapply(nm = landcover_rt_df$NameLandcover, dst = landcover_rt_df$Distance,
                                          FUN = function(nm, dst) {
-                                           y <- water_files_realtime[grep(paste0(fa, ".*_", mth, "_.*", nm, "_.*", dst), water_files_realtime)]
+                                           y <- water_files_realtime[grep(paste0(fa, "_.*", mth, "_.*", nm, "_.*", dst), water_files_realtime)]
                                            if (length(y) > 1) {
                                              msg <- paste0("Name ", nm, "; Distance ", dst, "; Matches:\n", 
                                                         paste0(y, collapse = ", "))
