@@ -29,7 +29,7 @@ impose_flooding <- function(water_files, field_files, output_dir,
   if (!is.logical(overwrite)) stop(add_ts("Argument 'overwrite' must be TRUE or FALSE"))
   if (!is.null(imposed_value) & !is.numeric(imposed_value)) stop(add_ts("Argument 'imposed_value' must be null or numeric"))
   if (!is.character(imposed_label)) stop(add_ts("Argument 'imposed_label' must be a character string of length 1"))
-
+  
   # Initialize output
 
   process_water_files <- function(wf) {
@@ -62,7 +62,17 @@ impose_flooding <- function(water_files, field_files, output_dir,
 
       # Load flooding area raster
       fld_rst <- raster(ff)
-
+      
+      # Stop if projection is not correct
+      if (!identical(projection(wtr_rst), projection(fld_rst))) {
+        stop(add_ts("Projection mismatch between wtr_rst and fld_rst.\n\twtr_rst: ", projection(wtr_rst), 
+                    "\n\tfld_rst: ", projection(fld_rst)))
+      }
+      
+      # Stop if no intersection
+      int_test <- try(intersect(wtr_rst, fld_rst), silent = TRUE)
+      if(inherits(int_test, "try-error")) stop(add_ts("Extents of wtr_rst and fld_rst do not intersect."))
+      
       # Mask if requested (speeds up subsequent processing)
       wtr_msk_rst <- wtr_rst
       if (mask == TRUE) {
@@ -128,9 +138,4 @@ impose_flooding <- function(water_files, field_files, output_dir,
     
   }
   
-  res <- unlist(out)
-
-  return(res)
-
-
-}
+  res <- unlist
