@@ -43,13 +43,18 @@ check_dir <- function(directory, create = FALSE, verbose = FALSE) {
 extract_subelement <- function(x, element) sapply(x, `[[`, element) 
 
 # Function to make a string filename safe
-clean_string <- function(x, sub_char = "-", ...) {
-  gsub("[^a-zA-Z0-9_\\-]", sub_char, x, ...)
+clean_string <- function(x, sub_char = "-", remove_underscores = TRUE, collapse = TRUE, ...) {
+  pattern <- ifelse(remove_underscores, "[^a-zA-Z0-9\\-]", "[^a-zA-Z0-9_\\-]")
+  x <- gsub(pattern, sub_char, x, ...)
+  if (collapse) {
+    x <- gsub(paste0(sub_char, "+"), sub_char, x)
+  }
+  return(x)
 }
 
 # Function to make a string filename safe
 clean_string_remove_underscores <- function(x, sub_char = "-", ...) {
-  gsub("[^a-zA-Z0-9\\-]", sub_char, x, ...)
+  cln <- gsub("[^a-zA-Z0-9\\-]", sub_char, x, ...)
 }
 
 # Function to more quickly trim rasters
@@ -156,13 +161,4 @@ setup_cluster <- function(ncores = detectCores(), verbose = FALSE, outfile = "")
   clusterExport(cl, ls(.GlobalEnv), .GlobalEnv)
   
   # Load packages
-  clusterEvalQ(cl, lapply(pkgs, FUN = library, character.only = TRUE, quietly = TRUE))
-
-  if (verbose == TRUE) {
-    print(clusterEvalQ(cl, ls()))
-    print(clusterEvalQ(cl, names(sessionInfo()$OtherPkgs))) #maybe doesn't work?
-  }
-  
-  return(cl)
-  
-}
+  clusterEvalQ(cl, lapply(pkgs, FUN = library, cha
