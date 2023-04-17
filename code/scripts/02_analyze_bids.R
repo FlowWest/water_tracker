@@ -129,22 +129,14 @@ fcl_imp_files <- mean_neighborhood_water(wxl_files, #previously-created water x 
 ncores <- min(detectCores(), length(water_imp_files), cores_max)
 
 fcl_imp_files <- list.files(imp_fcl_dir, pattern = paste0(scn, ".*tif$"), full.names = TRUE)
-#fcl_imp_files <- list.files(imp_fcl_dir, pattern = "23SDW339-South-Lake.*tif$", full.names = TRUE)
 
-# TODO - precalc moving windows for decadal averages in whole valley. No need to redo each time
-
-# water_files_longterm are created by the auction-level analysis
+# water_files_longterm are created by 01_get_longterm_water.R
 fcl_avg_files <- list.files(avg_fcl_dir, pattern = paste0(scn, ".*average.*tif$"), full.names = TRUE)
 
 # Can subset files using the scenarios parameter, which is applied as a regex filter
 scenarios_filter <- "imposed"
 
-mths <- month.abb[4]
-
-#bird_model_cov_files <- file.path(cov_dir, c("data_type_constant_ebird_p42r35_snapped.tif", "valley_roads_p42r35_snapped.tif"))
-#bird_model_cov_files <- file.path(cov_dir, c("data_type_constant_ebird_p44r33.tif", "valley_roads_p44r33.tif"))
 bird_model_cov_files <- file.path(cov_dir, c("data_type_constant_ebird_valley.tif", "valley_roads_valley.tif"))
-#tmax_files <- file.path(cov_dir, paste0("valley_tmx2015", tolower(mths), "_250m_snapped.tif"))
 tmax_files <- file.path(cov_dir, paste0("tmax_", mths, "_valley_snapped2.tif"))
 tmax_months <- mths
 tmax_names <- rep("tmax250m", length(mths))
@@ -183,5 +175,10 @@ stat_files <- extract_predictions(prd_files,
 stat_files <- list.files(imp_stat_dir, pattern = ".rds$", full.names = TRUE)
 fld_shp <- vect(file.path(fld_dir, paste0(shp_fn, "_prj.shp")))
 metadata_df <- as.data.frame(fld_shp)
+
+sum_files <- summarize_predictions(stat_files, 
+                                   field_shapefile = axn_file, 
+                                   output_dir = imp_stat_dir, 
+                                   overwrite = overwrite)
 
 
