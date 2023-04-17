@@ -130,7 +130,7 @@ extract_predictions <- function(prediction_files, floodarea_shapefiles, field_co
       # Landscape sum
       # Values need to be NA outside area of interest
       message_ts("Calculating total landscape suitability...")
-      prd_df$PredictionSum_Landscape <- cellStats(prd_stk, "mean", na.rm = TRUE)
+      prd_df$PredictionSum_Landscape <- cellStats(prd_stk, "sum", na.rm = TRUE)
 
       # Export
       saveRDS(prd_df, prd_data_file)
