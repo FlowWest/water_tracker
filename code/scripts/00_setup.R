@@ -16,7 +16,7 @@ auction_months <- c("Mar", "Apr")
 # Spatial extent of the fields to process
 # Specifies the landsat scene the fields are part of, or 'valley' if multiple scenes
 # Allowed values: 'p44r33' (Sacramento), 'p44r34' (Suisun), 'p43r34' (Delta), 'p42r35' (Tulare)
-#                 'valley' (entire CJVJ) if multiple
+#                 'valley' (entire CVJV) if multiple
 # See map in documentation for details
 auction_extent <- "valley"
 
@@ -65,7 +65,8 @@ code_files <- file.path(fxn_dir, c("00_shared_functions.R",
                                    "03_water_x_landcover.R",
                                    "04_water_moving_window.R",
                                    "05_predict_birds.R",
-                                   "06_extract_predictions.R"))
+                                   "06_extract_predictions.R",
+                                   "07_summarize_predictions.R"))
 code_files_exist <- file.exists(code_files)
 if (!all(code_files_exist)) {
   stop(add_ts(paste0("required code files not found. Please check that you have cloned the GitHub repo to ",
