@@ -48,9 +48,14 @@ code_dir <- file.path(base_dir, "water_tracker")
 # Packages ----------------------------------------------------
 # Parts of processing upgraded to terra, but predict.gbm requires raster
 library(terra)
+library(parallel)
+library(MASS)
+library(dismo)
+library(gbm)
 library(rgdal)
 library(raster)
-library(parallel)
+library(dplyr)
+library(tidyr)
 
 # Set temp processing directory for terra and raster
 terraOptions(tmpdir = temp_dir)
