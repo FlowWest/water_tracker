@@ -2,11 +2,10 @@
 #
 
 # TODO: add parameters for joining data
-summarize_predictions <- function(stat_files, metadata_csv_file, output_dir, overwrite = FALSE) {
+summarize_predictions <- function(stat_files, field_shapefile, output_dir, overwrite = FALSE) {
 
   # Load required packages
-  if (!require(rgdal)) stop(add_ts("Library rgdal is required"))
-  if (!require(raster)) stop(add_ts("Library raster is required"))
+  if (!require(terra)) stop(add_ts("Library terra is required"))
   if (!require(dplyr)) stop(add_ts("Library dplyr is required"))
   if (!require(tidyr)) stop(add_ts("Library tidyr is required"))
 
@@ -14,7 +13,7 @@ summarize_predictions <- function(stat_files, metadata_csv_file, output_dir, ove
   if (!all(file.exists(stat_files))) stop(add_ts("The following stat_files do not exist:\n",
                                                        paste0(stat_files[!file.exists(stat_files)], collapse = ", ")))
 
-  if (!(file.exists(metadata_csv_file))) stop(add_ts("metadata_csv_file does not exist"))
+  if (!(file.exists(field_shapefile))) stop(add_ts("field_shapefile does not exist"))
 
   # Check output dir
   if (!(file.exists(output_dir))) stop(add_ts("output_dir does not exist"))
@@ -26,9 +25,8 @@ summarize_predictions <- function(stat_files, metadata_csv_file, output_dir, ove
   processed_files <- c()
   
   # Read metadata
-  #md_df <- read.csv(metadata_csv_file, stringsAsFactors = FALSE)
-  md_shp <- readOGR(fld_dir, "BirdReturns_D-SOD_Winter_2022-23_Ponds")
-  md_df <- md_shp@data
+  md_shp <- vect(field_shapefile)
+  md_df <- as.data.frame(md_shp)
   md_df$BidFieldID <- paste0(md_df$BidID, "-", clean_string(md_df$FieldID))
   write.csv(md_df, file.path(fld_dir, "field_metadata.csv"), row.names = FALSE)
   
@@ -174,7 +172,7 @@ summarize_predictions <- function(stat_files, metadata_csv_file, output_dir, ove
   # Summarize by bid
   # Field-level stats calculated above for splittable fields, so summarize at bid level here
   message_ts("Summarizing by bid...")
-  fa_df <- ens_df %>%
+  bid_df <- ens_df %>%
     filter(DaysOverlap > 0) %>%
     ungroup() %>%
     group_by(BidID, County, PredictionMonth, FloodDateStart, FloodDateEnd, DaysOverlap, Species, Model) %>%
@@ -186,30 +184,49 @@ summarize_predictions <- function(stat_files, metadata_csv_file, output_dir, ove
               LandscapeMean = weighted.mean(LandscapeMean, FieldAreaAcres))
   
   # Export
-  fa_file <- file.path(output_dir, "03_prediction_summary_bid.csv")
-  if (file.exists(fa_file) & overwrite != TRUE) {
+  bid_file <- file.path(output_dir, "03_prediction_summary_bid.csv")
+  if (file.exists(bid_file) & overwrite != TRUE) {
     message_ts("File already exists and overwrite != TRUE. Moving to next...")
   } else {
-    write.csv(fa_df, fa_file, row.names = FALSE)
+    write.csv(bid_df, bid_file, row.names = FALSE)
     message_ts("Exported.")
-    processed_files <- c(processed_files, fa_file)
+    processed_files <- c(processed_files, bid_file)
   }
   
   # Combine by month
-  fa_cmb_df <- fa_df %>%
+  bid_cmb_df <- bid_df %>%
     group_by(BidID, FieldsIncluded, AreaAcres, PricePerAc, County, FloodDateStart, FloodDateEnd, Species) %>%
     summarise(PredictionYear = "Combined", PredictionMonth = "Combined", BidLength = sum(DaysOverlap),
               SuitMean = weighted.mean(SuitabilityMean, DaysOverlap),
               SuitSum = sum(SuitabilityMean * DaysOverlap * AreaAcres), LandscapeMean = weighted.mean(LandscapeMean, DaysOverlap))
   
   # Export
-  fa_cmb_file <- file.path(output_dir, "03a_prediction_summary_bid_across_months.csv")
-  if (file.exists(fa_cmb_file) & overwrite != TRUE) {
+  bid_cmb_file <- file.path(output_dir, "03a_prediction_summary_bid_across_months.csv")
+  if (file.exists(bid_cmb_file) & overwrite != TRUE) {
     message_ts("File already exists and overwrite != TRUE. Moving to next...")
   } else {
-    write.csv(fa_cmb_df, fa_cmb_file, row.names = FALSE)
+    write.csv(bid_cmb_df, bid_cmb_file, row.names = FALSE)
     message_ts("Exported.")
-    processed_files <- c(processed_files, fa_cmb_file)
+    processed_files <- c(processed_files, bid_cmb_file)
   }
   
-  # Calculate totals 
+  # Pivot wider
+  bid_wide_df <- bid_cmb_df %>%
+    select(-PredictionYear, - PredictionMonth, - LandscapeMean) %>%
+    pivot_wider(names_from = Species, values_from = c(SuitMean, SuitSum)) %>%
+    mutate(SuitMean_Total = mean(c(SuitMean_AMAV, SuitMean_BNST, SuitMean_DOWI, SuitMean_DUNL)),
+           SuitSum_Total = sum(c(SuitSum_AMAV, SuitSum_BNST, SuitSum_DOWI, SuitSum_DUNL)))
+  
+  # Export
+  bid_wide_file <- file.path(output_dir, "03b_prediction_summary_bid_across_months_wide.csv")
+  if (file.exists(bid_wide_file) & overwrite != TRUE) {
+    message_ts("File already exists and overwrite != TRUE. Moving to next...")
+  } else {
+    write.csv(bid_wide_df, bid_wide_file, row.names = FALSE)
+    message_ts("Exported.")
+    processed_files <- c(processed_files, bid_wide_file)
+  }
+  
+  return(processed_files)
+  
+}
