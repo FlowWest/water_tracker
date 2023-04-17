@@ -161,4 +161,13 @@ setup_cluster <- function(ncores = detectCores(), verbose = FALSE, outfile = "")
   clusterExport(cl, ls(.GlobalEnv), .GlobalEnv)
   
   # Load packages
-  clusterEvalQ(cl, lapply(pkgs, FUN = library, cha
+  clusterEvalQ(cl, lapply(pkgs, FUN = library, character.only = TRUE, quietly = TRUE))
+
+  if (verbose == TRUE) {
+    print(clusterEvalQ(cl, ls()))
+    print(clusterEvalQ(cl, names(sessionInfo()$OtherPkgs))) #maybe doesn't work?
+  }
+  
+  return(cl)
+  
+}
