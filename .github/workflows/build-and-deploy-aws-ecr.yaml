@@ -6,7 +6,7 @@ on:
       - bid-run
 
 env:
-  AWS_REGION: 'us-west-2'
+  AWS_REGION: 'us-west-2'  # Change to your desired AWS region
 
 jobs:
   setup-build-publish:
@@ -15,24 +15,20 @@ jobs:
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v3
-        with:
-          repository: ${{ github.repository }}
 
       - name: 'Configure AWS Credentials'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: $AWS_REGION
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: 'Login to AWS ECR'
         run: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
 
       - name: 'Build and Publish'
         run: |
           docker build -t b4bcompute .
           docker tag b4bcompute ${{ secrets.ECR_REPOSITORY }}:latest
           docker push ${{ secrets.ECR_REPOSITORY }}:latest
-        env:
-          AWS_REGION: $AWS_REGION
