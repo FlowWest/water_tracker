@@ -21,6 +21,7 @@ water_tracker <- function() {
   n <- 1
   sim <- sample(1:10, 1)
   while (sim != target) {
+    sim <- sample(1:10, 1)
     sns$publish(
                 TopicArn = topic_arn,
                 Message = paste("at step:", n, "the value generated:", sim)
