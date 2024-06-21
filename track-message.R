@@ -16,7 +16,7 @@ sns <- paws::sns(region="us-west-2",
 
 topic_arn <- "arn:aws:sns:us-west-2:975050180415:water-tracker-status"
 
-step <- 1
+n <- 1
 water_tracker <- function() {
   Sys.sleep(5)
   sim <- sample(1:50, 1)
@@ -28,8 +28,16 @@ water_tracker <- function() {
   } else {
     sns$publish(
       TopicArn = topic_arn,
-      Message = paste("at step:", step)
+      Message = paste("at step:", n, "the value generated:", sim)
     )
-    step <- step + 1
+    n <- n + 1
   }
 }
+
+
+sns$subscribe(
+  TopicArn = topic_arn,
+  Protocol = "email",
+  Endpoint = "emnlrodriguez@gmail.com",
+  ReturnSubscriptionArn = TRUE
+)
