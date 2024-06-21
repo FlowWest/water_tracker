@@ -17,7 +17,7 @@ sns <- paws::sns(region="us-west-2",
 topic_arn <- "arn:aws:sns:us-west-2:975050180415:water-tracker-status"
 
 n <- 1
-done <- FALSE
+running <- TRUE
 water_tracker <- function() {
   Sys.sleep(5)
   sim <- sample(1:10, 1)
@@ -26,17 +26,17 @@ water_tracker <- function() {
       TopicArn = topic_arn,
       Message = "COMPLETE - model run complete"
     )
-    done <- TRUE
+    running <<- FALSE
   } else {
     sns$publish(
       TopicArn = topic_arn,
       Message = paste("at step:", n, "the value generated:", sim)
     )
-    n <- n + 1
+    n <<- n + 1
   }
 }
 
 
-while (!done) {
+while (running) {
   water_tracker()
 }
