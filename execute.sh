@@ -27,4 +27,5 @@
 #
 # echo "complete"
 #
-echo "hello world"
+Rscript --no-save track-message.R 
+
