@@ -1,14 +1,22 @@
 library(paws)
 
-sns <- paws::sns()
+aws_access_key_id <- Sys.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
+aws_session_token <- Sys.getenv("AWS_SESSION_TOKEN")
 
-aws_access_key_id = Sys.getenv("AWS_ACCESS_KEY_ID")
-aws_secret_key = Sys.getenv("AWS_SECRET_KEY")
-aws_session_token = Sys.getenv("AWS_SESSION_TOKEN")
-aws_region = "us-west-2"
+
+sns <- paws::sns(region="us-west-2",
+                 credentials = list(
+                   creds = list(
+                     access_key_id = aws_access_key_id,
+                     secret_access_key = aws_secret_access_key,
+                     session_token = aws_session_token
+                   )
+                 ))
 
 topic_arn <- "arn:aws:sns:us-west-2:975050180415:water-tracker-status"
 
+step <- 1
 water_tracker <- function() {
   Sys.sleep(5)
   sim <- sample(1:50, 1)
@@ -17,5 +25,11 @@ water_tracker <- function() {
       TopicArn = topic_arn,
       Message = "COMPLETE - model run complete"
     )
+  } else {
+    sns$publish(
+      TopicArn = topic_arn,
+      Message = paste("at step:", step)
+    )
+    step <- step + 1
   }
 }
