@@ -30,7 +30,7 @@ all_inputs  <- c(
 
 
 
-sns <- paws::sns(region="us-west-2",
+sqs <- paws::sqs(region="us-west-2",
                  credentials = list(
                    creds = list(
                      access_key_id = aws_access_key_id,
@@ -39,14 +39,20 @@ sns <- paws::sns(region="us-west-2",
                    )
                  ))
 
-topic_arn <- "arn:aws:sns:us-west-2:975050180415:water-tracker-status"
+Q_url <- "https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
 
 water_tracker <- function() {
   for (i in 1:10) {
     Sys.sleep(5)
-    sns$publish(
-                TopicArn = topic_arn,
-                Message = paste("The values of the inputs are:", paste0(all_inputs, collapse = ","))
+    sqs$send_message(
+      QueueUrl = Q_url,
+      MessageBody = paste("The values of the inputs are:", paste0(all_inputs, collapse = ",")),
+      MessageAttributes = list(
+        "water-tracker-run" = list(
+          DataType = "String",
+          StringValue = "fdsa"
+        )
+      )
     )
   }
     return(0)
