@@ -48,7 +48,7 @@ water_tracker <- function() {
       QueueUrl = Q_url,
       MessageBody = paste("The values of the inputs are:", paste0(all_inputs, collapse = ",")),
       MessageAttributes = list(
-        "water-tracker-run" = list(
+        bid_name = list(
           DataType = "String",
           StringValue = "fdsa"
         )
