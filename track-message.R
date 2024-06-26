@@ -47,11 +47,14 @@ water_tracker <- function() {
     sqs$send_message(
       QueueUrl = Q_url,
       MessageBody = paste("The values of the inputs are:", paste0(all_inputs, collapse = ",")),
-      MessageAttributes = list(
-        bid_name = list(
-          DataType = "String",
-          StringValue = "fdsa"
-        )
+      MessageAttributes = setNames(
+        list(
+          list(
+            DataType = "String",
+            StringValue = "fdsa"
+          )
+        ),
+        bid_name
       )
     )
   }
