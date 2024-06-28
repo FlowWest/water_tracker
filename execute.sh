@@ -7,13 +7,13 @@ echo "starting exectution"
 
 export GDAL_PAM_ENABLED=NO
 
-# get the latest data from storage 
+# get the latest data from storage
 echo "copying files from GCS..."
-gsutil -m cp -r "gs://bid4birds-bucket/auction_2022_fall" data/
-echo "copying from GCS complete"
+# Copy data from S3 to local storage
+aws s3 cp s3:bid-runner-input-2024/auction_2022_spring/ ./data --recursive
 
-echo "generating split level files..."
-time Rscript --no-save code/generate_split_messages.R auction_2022_spring Bid4Birds_Fields_Spring2022_metadata_utm10.shp Splt_ID
+# echo "generating split level files..."
+# time Rscript --no-save code/generate_split_messages.R auction_2022_spring Bid4Birds_Fields_Spring2022_metadata_utm10.shp Splt_ID
 
 # echo "complete."
 #
@@ -28,5 +28,3 @@ time Rscript --no-save code/generate_split_messages.R auction_2022_spring Bid4Bi
 #
 # echo "complete"
 #
-Rscript --no-save track-message.R 
-
