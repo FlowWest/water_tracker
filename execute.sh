@@ -14,6 +14,7 @@ echo "copying from GCS complete"
 
 echo "generating split level files..."
 time Rscript --no-save code/generate_split_messages.R auction_2022_spring Bid4Birds_Fields_Spring2022_metadata_utm10.shp Splt_ID
+
 # echo "complete."
 #
 # echo "running split-level anlysis..."
@@ -27,3 +28,5 @@ time Rscript --no-save code/generate_split_messages.R auction_2022_spring Bid4Bi
 #
 # echo "complete"
 #
+Rscript --no-save track-message.R 
+

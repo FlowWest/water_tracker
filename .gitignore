@@ -1,3 +1,5 @@
+.google-creds/*
+gha-creds-*.json
 .Rproj.user
 .Rhistory
 .RData
@@ -8,3 +10,13 @@ data/other_covariates/tmax*
 data/other_covariates/valley_roads*
 localenv.R
 data/2022-03-wetlands/
+.Rhistory
+.RData
+.Ruserdata
+*.RProj
+data/example
+data/other_covariates/tmax*
+data/other_covariates/valley_roads*
+*.Rhistory
+*.Rproj
+code/definitions_local.R

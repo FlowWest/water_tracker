@@ -1,0 +1,1 @@
+1. be able to spin up a vm with a docker image 

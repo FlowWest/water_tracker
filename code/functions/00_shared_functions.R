@@ -4,8 +4,8 @@
 
 # Shared Functions --------------------
 
-# Basic logging function to add a timestamp to strings
-add_ts <- function(...) paste0("[", Sys.time(), "] - ", ...)
+# Basic logging function to add a timestamp and process id to strings
+add_ts <- function(...) paste0("{", Sys.getpid(), "} [", Sys.time(), "] - ", ...)
 
 # Send log message to AWS SQS
 sqs_message <- function(...) {
@@ -40,12 +40,12 @@ check_dir <- function(directory, create = FALSE, verbose = FALSE) {
     if (!file.exists(d)) {
 
       if (create == FALSE) {
-
         stop(add_ts("Directory", d, "is required but does not exist."))
-
+        
+        
       } else {
 
-        message_ts("Creating directory ", d)
+        message("Creating directory ", d)
         dir.create(d)
 
       }
@@ -54,30 +54,30 @@ check_dir <- function(directory, create = FALSE, verbose = FALSE) {
 
       message_ts("Directory", d, "exists.")
 
-    }
-
+      
+    } 
   }
-
-}
-
+} 
 # Function to get the nth subelement from each item in a list
 extract_subelement <- function(x, element) sapply(x, `[[`, element)
 
 # Function to make a string filename safe
-clean_string <- function(x, sub_char = "-", ...) {
-  gsub("[^a-zA-Z0-9_\\-]", sub_char, x, ...)
+clean_string <- function(x, sub_char = "-", remove_underscores = TRUE, collapse = TRUE, ...) {
+  pattern <- ifelse(remove_underscores, "[^a-zA-Z0-9\\-]", "[^a-zA-Z0-9_\\-]")
+  x <- gsub(pattern, sub_char, x, ...)
+  if (collapse) {
+    x <- gsub(paste0(sub_char, "+"), sub_char, x)
+  }
+  return(x)
 }
 
 # Function to make a string filename safe
 clean_string_remove_underscores <- function(x, sub_char = "-", ...) {
-  gsub("[^a-zA-Z0-9\\-]", sub_char, x, ...)
-
-  # Condense multiple sub_chars
-  gsub(paste0(sub_char, "+"), sub_char, x, ...)
+  cln <- gsub("[^a-zA-Z0-9\\-]", sub_char, x, ...)
 }
 
 # Function to split a vector into n chunks of equal size
-chunk <- function(x,n) split(x, cut(seq_along(x), n, labels = FALSE))
+chunk <- function(x,n) split(x, cut(seq_along(x), n, labels = FALSE)) 
 
 # Function to more quickly trim rasters
 # raster::trim is ridiculously slow
@@ -165,4 +165,31 @@ parse_filename <- function(files) {
 
 }
 
+# Function to setup cluster for parallel processing (on windows; linux can use easier mclapply)
+setup_cluster <- function(ncores = detectCores(), verbose = FALSE, outfile = "") {
+  
+  ncores <- min(ncores, detectCores())
+  cl <- makeCluster(ncores, outfile = outfile)
+  
+  # Get loaded packages
+  pkgs <- names(sessionInfo()$otherPkgs)
+  
+  # Export available variables in current env, parent env(s), and global env
+  this_env <- environment()
+  while(!identical(this_env, .GlobalEnv)) {
+    clusterExport(cl, ls(this_env), this_env)
+    this_env <- parent.env(environment())
+  }
+  clusterExport(cl, ls(.GlobalEnv), .GlobalEnv)
+  
+  # Load packages
+  clusterEvalQ(cl, lapply(pkgs, FUN = library, character.only = TRUE, quietly = TRUE))
 
+  if (verbose == TRUE) {
+    print(clusterEvalQ(cl, ls()))
+    print(clusterEvalQ(cl, names(sessionInfo()$OtherPkgs))) #maybe doesn't work?
+  }
+  
+  return(cl)
+  
+}

@@ -41,10 +41,10 @@ overlay_water_landcover <- function(water_files, landcover_files, output_dir = N
 		}
 
 		# Load
-		logger::log_info("load {wf} as raster")
 		wtr_rst <- raster(wf)
 
 		# Loop across passed landcover files
+		logger::info("processing landcover files: {landcover_files}")
 		for (lcf in landcover_files) {
 
 			lcfn <- basename(lcf)
