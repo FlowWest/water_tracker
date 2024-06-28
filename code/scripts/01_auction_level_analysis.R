@@ -5,19 +5,14 @@ options(suppressPackageStartupMessages = TRUE)
 options("rgdal_show_exportToProj4_warnings"="none")
 options(warn = -1)
 
+source("sqs-appender.R")
 source("localenv.R")
 
-aws_credentials <- list(
-  creds = list(
-    access_key_id = Sys.getenv("AWS_ACCESS_KEY_ID"),
-    secret_access_key = Sys.getenv("AWS_SECRET_ACCESS_KEY"),
-    session_token = Sys.getenv("AWS_SESSION_TOKEN")
+q_url <- "https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
+bid_name <- "test-test"
 
-  )
-)
-
-SQS_CLIENT <- paws::sqs(region="us-west-2",
-                        credentials = aws_credentials)
+# logger::log_appender(appender_sqs(bid_name = bid_name, sqs_url = q_url))
+logger::log_appender(logger::appender_console)
 
 # Load definitions and code
 def_file <- file.path(getwd(), "code/definitions.R")
@@ -47,11 +42,10 @@ if (length(files_not_found) > 0) {
 
 # Overlay water and landcover
 # Function defined in functions/03_water_x_landcover.R
-wxl_files <- overlay_water_landcover(water_files[1],
-                                     landcover_files[1],
+wxl_files <- overlay_water_landcover(water_files[1:2],
+                                     landcover_files[1:2],
                                      output_dir = avg_wxl_dir)  #avg_wxl_dir defined in definitions.R
 
-stop("END OF MODEL ------------------------", call. = FALSE)
 
 # Calculate moving windows -------------------------------------
 # Use returned filenames from previous function as input; alternatively could define via table or directory search
@@ -66,6 +60,7 @@ fcl_files <- mean_neighborhood_water(wxl_files,                #previously-creat
                                     output_dir = avg_fcl_dir,
                                     trim_extent = FALSE)      #only set for TRUE with splits
 
+stop("END OF MODEL ------------------------", call. = FALSE)
 
 # Create bird predictions -------------------------------------
 # This is messy because the models need a ton of files from different places.
