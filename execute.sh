@@ -25,6 +25,9 @@ aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Set
 # get the latest data from storage
 echo "copying files from S3"
 aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Copying files from S3 for model inputs"
+aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - done running for now"
+
+
 # Copy data from S3 to local storage
 #aws s3 cp s3:bid-runner-input-2024/auction_2022_spring/ ./data --recursive
 
