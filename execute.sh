@@ -1,16 +1,32 @@
 #!/bin/bash
 
+QUEUE_URL="https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
 ### stop on an error
+
 set -e
 
-echo "starting exectution"
+# capture cl arguments
+bid_name=$0
+input_bucket=$1
+auction_id=$2
+auction_shapefile=$3
+split_id=$4
+bid_id=$5
+bid_monts=$6
+waterfiles=$7
+output_bucket=$8
+
+
+aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Excutation of execute.sh started"
 
 export GDAL_PAM_ENABLED=NO
+aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Setting GDAL_PAM_ENABLED to No"
 
 # get the latest data from storage
-echo "copying files from GCS..."
+echo "copying files from S3"
+aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Copying files from S3 for model inputs"
 # Copy data from S3 to local storage
-aws s3 cp s3:bid-runner-input-2024/auction_2022_spring/ ./data --recursive
+#aws s3 cp s3:bid-runner-input-2024/auction_2022_spring/ ./data --recursive
 
 # echo "generating split level files..."
 # time Rscript --no-save code/generate_split_messages.R auction_2022_spring Bid4Birds_Fields_Spring2022_metadata_utm10.shp Splt_ID
