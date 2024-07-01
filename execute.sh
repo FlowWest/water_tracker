@@ -1,8 +1,8 @@
 #!/bin/bash
 
 QUEUE_URL="https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
-### stop on an error
 
+### stop on an error
 set -e
 
 # capture cl arguments
