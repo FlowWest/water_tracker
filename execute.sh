@@ -16,20 +16,31 @@ bid_monts=$7
 waterfiles=$8
 output_bucket=$9
 
-MESSAGE_ATTRIBUTES="{
-    \"bid_name\": {
-        \"DataType\": \"String\",
-        \"StringValue\": \"$bid_name\"
-    }
-}"
+send_sqs_message() {
+    local queue_url="$1"
+    local message="$2"
+    local bid_name="$3"
 
-aws sqs send-message \
-    --queue-url "$QUEUE_URL" \
-    --message-body "TESTING IF THIS WORKS!!!!!!!!!!!!!" \
-    --message-attributes "$MESSAGE_ATTRIBUTES"
+    local message_attributes="{
+        \"bid_name\": {
+            \"DataType\": \"String\",
+            \"StringValue\": \"$bid_name\"
+        }
+    }"
 
-# aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Excutation of execute.sh started"
-#
+    aws sqs send-message \
+        --queue-url "$queue_url" \
+        --message-body "$message" \
+        --message-attributes "$message_attributes"
+}
+
+send_sqs_message "$QUEUE_URL" "Starting up model run..." "$bid_name"
+
+# aws sqs send-message \
+#     --queue-url "$QUEUE_URL" \
+#     --message-body "copying files from S3 to FARGATE instance" \
+#     --message-attributes "$MESSAGE_ATTRIBUTES"
+
 # export GDAL_PAM_ENABLED=NO
 # aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Setting GDAL_PAM_ENABLED to No"
 #
@@ -40,7 +51,6 @@ aws sqs send-message \
 
 
 # Copy data from S3 to local storage
-#aws s3 cp s3:bid-runner-input-2024/auction_2022_spring/ ./data --recursive
 
 # echo "generating split level files..."
 # time Rscript --no-save code/generate_split_messages.R auction_2022_spring Bid4Birds_Fields_Spring2022_metadata_utm10.shp Splt_ID
