@@ -25,18 +25,18 @@ MESSAGE_ATTRIBUTES="{
 
 aws sqs send-message \
     --queue-url "$QUEUE_URL" \
-    --message-body "TESTING THIS WORKS!!!!!!!!!!!!!" \
+    --message-body "TESTING IF THIS WORKS!!!!!!!!!!!!!" \
     --message-attributes "$MESSAGE_ATTRIBUTES"
 
-aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Excutation of execute.sh started"
-
-export GDAL_PAM_ENABLED=NO
-aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Setting GDAL_PAM_ENABLED to No"
-
-# get the latest data from storage
-echo "copying files from S3"
-aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Copying files from S3 for model inputs"
-aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - done running for now"
+# aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Excutation of execute.sh started"
+#
+# export GDAL_PAM_ENABLED=NO
+# aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Setting GDAL_PAM_ENABLED to No"
+#
+# # get the latest data from storage
+# echo "copying files from S3"
+# aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Copying files from S3 for model inputs"
+# aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - done running for now"
 
 
 # Copy data from S3 to local storage
