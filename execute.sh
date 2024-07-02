@@ -34,7 +34,9 @@ send_sqs_message() {
         --message-attributes "$message_attributes"
 }
 
-send_sqs_message "$QUEUE_URL" " <execute.sh> - Starting up model run..." "$bid_name"
+send_sqs_message "$QUEUE_URL" "<execute.sh> - Starting up model run..." "$bid_name"
+send_sqs_message "$QUEUE_URL" "<execute.sh> - Setting up model inputs..." "$bid_name"
+send_sqs_message "$QUEUE_URL" "<execute.sh> - Setting up model inputs...done" "$bid_name"
 
 # export GDAL_PAM_ENABLED=NO
 # aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Setting GDAL_PAM_ENABLED to No"
