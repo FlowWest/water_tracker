@@ -16,6 +16,17 @@ bid_monts=$6
 waterfiles=$7
 output_bucket=$8
 
+MESSAGE_ATTRIBUTES="{
+    \"$bid_name\": {
+        \"DataType\": \"String\",
+        \"StringValue\": \"$bid_name\"
+    }
+}"
+
+aws sqs send-message \
+    --queue-url "$QUEUE_URL" \
+    --message-body "TESTING THIS WORKS!!!!!!!!!!!!!" \
+    --message-attributes "$MESSAGE_ATTRIBUTES"
 
 aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Excutation of execute.sh started"
 
