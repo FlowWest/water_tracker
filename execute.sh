@@ -6,15 +6,15 @@ QUEUE_URL="https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
 set -e
 
 # capture cl arguments
-bid_name=$0
-input_bucket=$1
-auction_id=$2
-auction_shapefile=$3
-split_id=$4
-bid_id=$5
-bid_monts=$6
-waterfiles=$7
-output_bucket=$8
+bid_name=$1
+input_bucket=$2
+auction_id=$3
+auction_shapefile=$4
+split_id=$5
+bid_id=$6
+bid_monts=$7
+waterfiles=$8
+output_bucket=$9
 
 MESSAGE_ATTRIBUTES="{
     \"$bid_name\": {
