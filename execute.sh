@@ -17,7 +17,7 @@ waterfiles=$8
 output_bucket=$9
 
 MESSAGE_ATTRIBUTES="{
-    \"$bid_name\": {
+    \"bid_name\": {
         \"DataType\": \"String\",
         \"StringValue\": \"$bid_name\"
     }
