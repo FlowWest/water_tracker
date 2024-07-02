@@ -34,12 +34,7 @@ send_sqs_message() {
         --message-attributes "$message_attributes"
 }
 
-send_sqs_message "$QUEUE_URL" "Starting up model run..." "$bid_name"
-
-# aws sqs send-message \
-#     --queue-url "$QUEUE_URL" \
-#     --message-body "copying files from S3 to FARGATE instance" \
-#     --message-attributes "$MESSAGE_ATTRIBUTES"
+send_sqs_message "$QUEUE_URL" " <execute.sh> - Starting up model run..." "$bid_name"
 
 # export GDAL_PAM_ENABLED=NO
 # aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Setting GDAL_PAM_ENABLED to No"
