@@ -38,11 +38,6 @@ send_sqs_message() {
 
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Starting up model run..." "$bid_name"
 
-send_sqs_message "$QUEUE_URL" "<execute.sh> - Mounding EFS filesystem" "$bid_name"
-mkdir /mnt/efs
-mount -t efs -o tls,region=us-west-2 fs-05d7454aaa9b465e2:/ /mnt/efs
-send_sqs_message "$QUEUE_URL" "<execute.sh> - Mounding EFS filesystem... done" "$bid_name"
-
 EFS_CONTENTS=$(ls -la /mnt/efs 2>&1)
 MESSAGE="<execute.sh> - contents of /mnt/efs:\n$EFS_CONTENTS"
 send_sqs_message "$QUEUE_URL" "$MESSAGE" "$bid_name"
