@@ -38,7 +38,7 @@ send_sqs_message() {
 
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Starting up model run..." "$bid_name"
 
-EFS_CONTENTS=$(ls -la /mnt/efs 2>&1)
+EFS_CONTENTS=$(ls /mnt/efs 2>&1)
 MESSAGE="<execute.sh> - contents of /mnt/efs:\n$EFS_CONTENTS"
 send_sqs_message "$QUEUE_URL" "$MESSAGE" "$bid_name"
 
