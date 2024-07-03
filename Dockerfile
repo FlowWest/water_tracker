@@ -26,7 +26,6 @@ RUN chmod +x b4b/execute.sh
 
 WORKDIR /b4b/ 
 
-# RUN Rscript --no-save code/install_packages.R 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . "$HOME/.cargo/env"
 
 RUN apt-get update && \
@@ -35,6 +34,5 @@ RUN apt-get update && \
     cd efs-utils && \
     ./build-deb.sh && \
     apt-get -y install ./build/amazon-efs-utils*deb
-
 
 CMD ["/b4b/execute.sh"]
