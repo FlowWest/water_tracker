@@ -35,6 +35,15 @@ send_sqs_message() {
 }
 
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Starting up model run..." "$bid_name"
+send_sqs_message "$QUEUE_URL" "<execute.sh> - Installing EFS utils..." "$bid_name"
+sudo yum install -y amazon-efs-utils
+send_sqs_message "$QUEUE_URL" "<execute.sh> - Installing EFS utils... done" "$bid_name"
+
+send_sqs_message "$QUEUE_URL" "<execute.sh> - Mounding EFS filesystem" "$bid_name"
+sudo mount -t efs -o tls fs-05d7454aaa9b465e2:/ efs
+send_sqs_message "$QUEUE_URL" "<execute.sh> - Mounding EFS filesystem... done" "$bid_name"
+
+
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Setting up model inputs..." "$bid_name"
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Setting up model inputs...done" "$bid_name"
 
