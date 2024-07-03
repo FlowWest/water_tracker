@@ -27,10 +27,10 @@ RUN chmod +x b4b/execute.sh
 WORKDIR /b4b/ 
 
 # RUN Rscript --no-save code/install_packages.R 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh && . "$HOME/.cargo/env"
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . "$HOME/.cargo/env"
 
 RUN sudo apt-get update && \
-    sudo apt-get -y install git binutils rustc cargo pkg-config libssl-dev && \
+   sudo apt-get -y install git binutils rustc cargo pkg-config libssl-dev && \
     git clone https://github.com/aws/efs-utils && \
     cd efs-utils && \
     ./build-deb.sh && \
