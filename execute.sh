@@ -42,19 +42,8 @@ EFS_CONTENTS=$(ls /mnt/efs 2>&1)
 MESSAGE="<execute.sh> - contents of /mnt/efs:\n$EFS_CONTENTS"
 send_sqs_message "$QUEUE_URL" "$MESSAGE" "$bid_name"
 
-# export GDAL_PAM_ENABLED=NO
-# aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Setting GDAL_PAM_ENABLED to No"
-#
-# # get the latest data from storage
-# echo "copying files from S3"
-# aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - Copying files from S3 for model inputs"
-# aws sqs send-message --queue-url "$QUEUE_URL" --message-body "[docker run] - done running for now"
-
-
-# Copy data from S3 to local storage
-
-# echo "generating split level files..."
-# time Rscript --no-save code/generate_split_messages.R auction_2022_spring Bid4Birds_Fields_Spring2022_metadata_utm10.shp Splt_ID
+send_sqs_message "$QUEUE_URL" "<execute.sh> - Running generate_split_message.R"
+Rscript --no-save code/generate_split_messages.R $input_bucket $auction_shapefile $split_id
 
 # echo "complete."
 #
