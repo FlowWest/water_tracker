@@ -34,9 +34,16 @@ send_sqs_message() {
         --message-attributes "$message_attributes"
 }
 
+
+
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Starting up model run..." "$bid_name"
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Installing EFS utils..." "$bid_name"
-sudo yum install -y amazon-efs-utils
+sudo apt install git
+git clone https://github.com/aws/efs-utils
+sudo apt install make
+sudo apt install binutils
+./build-deb.sh
+sudo apt install ./build/amazon-efs-utils*deb
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Installing EFS utils... done" "$bid_name"
 
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Mounding EFS filesystem" "$bid_name"
