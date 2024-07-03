@@ -17,6 +17,7 @@ FROM 975050180415.dkr.ecr.us-west-2.amazonaws.com/r-for-b4b:latest
 #  libxml2-dev\
 #  libgdal-dev\
 #  git
+ENV AWS_DEFAULT_REGION=us-west-2
 
 # copy all the R code
 COPY code/ b4b/code/
