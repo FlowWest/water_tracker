@@ -43,7 +43,7 @@ MESSAGE="<execute.sh> - contents of /mnt/efs:\n$EFS_CONTENTS"
 send_sqs_message "$QUEUE_URL" "$MESSAGE" "$bid_name"
 
 send_sqs_message "$QUEUE_URL" "<execute.sh> - Running generate_split_message.R" "$bid_name"
-Rscript --no-save code/generate_split_messages.R $input_bucket $auction_shapefile $split_id
+Rscript --no-save code/generate_split_messages.R $bid_name $auction_id $auction_shapefile $split_id
 
 # echo "complete."
 #
