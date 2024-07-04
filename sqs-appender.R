@@ -30,10 +30,10 @@ appender_sqs <- function(bid_name, sqs_url,
             list(
               list(
                 DataType = "String",
-                StringValue = "fdsa"
+                StringValue = bid_name
               )
             ),
-            bid_name
+            "bid_name"
           )
         )
       }
