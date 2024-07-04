@@ -12,14 +12,14 @@ logger::log_appender(appender_sqs)
 logger::log_info("running split_message with the following: auction_id: {auction_id}; shapefile_name: {shape_file_name}; split_column: {split_column}")
 
 # source functions and definitions ---------------------
-code_dir <- paste0("code/")
-tryCatch(
-  suppressMessages(source(file.path(code_dir, "definitions.R"))),
-  error = function(e) {
-    logger::log_error("there was an error trying to run the definitions file\n\n{e}")
-  }
-
-)
+# code_dir <- paste0("code/")
+# tryCatch(
+#   suppressMessages(source(file.path(code_dir, "definitions.R"))),
+#   error = function(e) {
+#     logger::log_error("there was an error trying to run the definitions file\n\n{e}")
+#   }
+#
+# )
 # suppressMessages(source(file.path(code_dir, "functions/00_shared_functions.R")))
 # suppressMessages(source(file.path(code_dir, "functions/01_process_field_file.R")))
 
