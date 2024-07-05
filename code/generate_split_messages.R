@@ -12,11 +12,8 @@ split_column <- arguments[4]
 
 
 # source functions and definitions ---------------------
-files_in_efs_fs <- list.files("/mnt/efs")
-logger::log_info("Rscript - the following files found in the EFS")
-code_dir <- "code/"
 tryCatch(
-  suppressMessages(source(file.path(code_dir, "definitions.R"))),
+  suppressMessages(source("code/definitions.R")),
   error = function(e) {
     logger::log_error("there was an error trying to run the definitions file\n\n{e}")
   }
