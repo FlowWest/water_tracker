@@ -1,8 +1,5 @@
 # Run split-level analysis
 
-source("sqs-appender.R")
-q_url <- "https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
-logger::log_appender(appender_sqs(bid_name = bid_name, sqs_url = q_url))
 # command line arguments ----------------------------
 arguments <- commandArgs(trailingOnly = TRUE)
 bid_name <- arguments[1]
@@ -10,6 +7,9 @@ auction_id <- arguments[2]
 shape_file_name <- arguments[3]
 split_column <- arguments[4]
 
+source("sqs-appender.R")
+q_url <- "https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
+logger::log_appender(appender_sqs(bid_name = bid_name, sqs_url = q_url))
 
 # source functions and definitions ---------------------
 logger::log_info("getwd: {getwd()}")
