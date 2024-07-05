@@ -12,13 +12,8 @@ split_column <- arguments[4]
 
 
 # source functions and definitions ---------------------
-tryCatch(
-  suppressMessages(source("code/definitions.R")),
-  error = function(e) {
-    logger::log_error("there was an error trying to run the definitions file\n\n{e}")
-  }
-
-)
+logger::log_info("getwd: {getwd()}")
+logger::log_info("list.files: {list.files()}")
 
 # suppressMessages(source(file.path(code_dir, "functions/00_shared_functions.R")))
 # suppressMessages(source(file.path(code_dir, "functions/01_process_field_file.R")))
