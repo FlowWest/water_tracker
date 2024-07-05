@@ -2,6 +2,7 @@
 
 source("sqs-appender.R")
 q_url <- "https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
+logger::log_appender(appender_sqs(bid_name = bid_name, sqs_url = q_url))
 # command line arguments ----------------------------
 arguments <- commandArgs(trailingOnly = TRUE)
 bid_name <- arguments[1]
@@ -9,23 +10,19 @@ auction_id <- arguments[2]
 shape_file_name <- arguments[3]
 split_column <- arguments[4]
 
-logger::log_appender(appender_sqs(bid_name = bid_name, sqs_url = q_url))
-
-logger::log_info("Rscript - the value of bid_name: {bid_name}")
-logger::log_info("Rscript - the value of auction_id: {auction_id}")
-logger::log_info("Rscript - the value of shapefile: {shape_file_name}")
-logger::log_info("Rscript - the value of split column: {split_column}")
-
 
 # source functions and definitions ---------------------
-# code_dir <- paste0("code/")
-# tryCatch(
-#   suppressMessages(source(file.path(code_dir, "definitions.R"))),
-#   error = function(e) {
-#     logger::log_error("there was an error trying to run the definitions file\n\n{e}")
-#   }
-#
-# )
+files_in_efs_fs <- list.files("/mnt/efs")
+logger::log_info("Rscript - the following files found in the EFS")
+code_dir <- "code/"
+tryCatch(
+  suppressMessages(source(file.path(code_dir, "definitions.R"))),
+  error = function(e) {
+    logger::log_error("there was an error trying to run the definitions file\n\n{e}")
+  }
+
+)
+
 # suppressMessages(source(file.path(code_dir, "functions/00_shared_functions.R")))
 # suppressMessages(source(file.path(code_dir, "functions/01_process_field_file.R")))
 

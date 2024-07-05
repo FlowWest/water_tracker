@@ -2,10 +2,15 @@
 #
 # Point Blue, California Rice Commission
 
+source("sqs-appender.R")
+q_url <- "https://sqs.us-west-2.amazonaws.com/975050180415/water-tracker-Q"
+logger::log_appender(appender_sqs(bid_name = bid_name, sqs_url = q_url))
+
+logger::log_info("setting defintions using `definitions.R`")
 # Set directories ---------------------------------------------
-base_dir <- "data" #getwd() #replace as necessary with "YOUR/BASE/DIR"
-code_dir <- file.path(base_dir, "code/water_tracker/code")
-data_dir <- file.path(base_dir)
+base_dir <- "." #getwd() #replace as necessary with "YOUR/BASE/DIR"
+code_dir <- file.path(base_dir, "code")
+data_dir <- file.path("/mnt/efs/auction_2022_spring")
 
 landcover_dir <- file.path(data_dir, "landcover")
 runoff_dir <- file.path(data_dir, "runoff")
