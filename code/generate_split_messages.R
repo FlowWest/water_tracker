@@ -10,8 +10,11 @@ shape_file_name <- arguments[3]
 split_column <- arguments[4]
 
 logger::log_appender(appender_sqs(bid_name = bid_name, sqs_url = q_url))
-logger::log_info("running split_message with the following: auction_id: {auction_id}; shapefile_name: {shape_file_name}; split_column: {split_column}")
 
+logger::log_info("Rscript - the value of bid_name: {bid_name}")
+logger::log_info("Rscript - the value of auction_id: {auction_id}")
+logger::log_info("Rscript - the value of shapefile: {shape_file_name}")
+logger::log_info("Rscript - the value of split column: {split_column}")
 
 
 # source functions and definitions ---------------------
