@@ -15,6 +15,9 @@ logger::log_appender(appender_sqs(bid_name = bid_name, sqs_url = q_url))
 logger::log_info("getwd: {getwd()}")
 logger::log_info("list.files: {list.files()}")
 
+tryCatch(source("code/definitions.R"),
+         error = \(x) logger::log_error("there was an error trying to source definitions. {x}"))
+
 # suppressMessages(source(file.path(code_dir, "functions/00_shared_functions.R")))
 # suppressMessages(source(file.path(code_dir, "functions/01_process_field_file.R")))
 
