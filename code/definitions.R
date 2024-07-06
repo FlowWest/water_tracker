@@ -75,3 +75,6 @@ mths <- month.abb[4]
 tmax_files <- file.path(covariates_dir, paste0("tmax_", mths, "_valley_snapped2.tif"))
 tmax_months <- mths
 tmax_names <- rep("tmax250m", length(mths))
+
+
+logger::log_info("setting defintions using `definitions.R` - DONE")
